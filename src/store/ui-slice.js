@@ -13,4 +13,4 @@ const uiSlice = createSlice({
 });
 
 export default uiSlice;
-export const cartActions = uiSlice.actions;
+export const uiActions = uiSlice.actions;
