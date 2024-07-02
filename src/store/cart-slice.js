@@ -1,17 +1,22 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { uiActions } from "./ui-slice";
 
 const cartSlice = createSlice({
   name: "cart",
   initialState: {
     items: [],
     totalQuantity: 0,
+    changed: false,
   },
   reducers: {
-    addItemsToCart(state, action) {
+    replaceCart(state, action) {
+      state.totalQuantity = action.payload.totalQuantity;
+      state.items = action.payload.items;
+    },
+    addItemToCart(state, action) {
       const newItem = action.payload;
       const existingItem = state.items.find((item) => item.id === newItem.id);
       state.totalQuantity++;
+      state.changed = true;
       if (!existingItem) {
         state.items.push({
           id: newItem.id,
@@ -25,10 +30,11 @@ const cartSlice = createSlice({
         existingItem.totalPrice = existingItem.totalPrice + newItem.price;
       }
     },
-    removeitemFromCart(state, action) {
+    removeItemFromCart(state, action) {
       const id = action.payload;
       const existingItem = state.items.find((item) => item.id === id);
       state.totalQuantity--;
+      state.changed = true;
       if (existingItem.quantity === 1) {
         state.items = state.items.filter((item) => item.id !== id);
       } else {
@@ -39,49 +45,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const sendCartData = (cart) => {
-  return async (dispatch) => {
-    dispatch(
-      uiActions.showNotifications({
-        status: "pending",
-        title: "Sending...",
-        message: "Sending cart data",
-      })
-    );
-
-    const sendRequest = async () => {
-      const response = await fetch(
-        "https://my-dummy-backend-2cbd5-default-rtdb.firebaseio.com/cart.json",
-        {
-          method: "PUT",
-          body: JSON.stringify(cart),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Eroor sending cart data");
-      }
-    };
-
-    try {
-      await sendRequest();
-      dispatch(
-        uiActions.showNotifications({
-          status: "success",
-          title: "Success",
-          message: "Sent cart data successfully",
-        })
-      );
-    } catch (error) {
-      dispatch(
-        uiActions.showNotifications({
-          status: "error",
-          title: "Error",
-          message: "Error sending cart data",
-        })
-      );
-    }
-  };
-};
 export const cartActions = cartSlice.actions;
+
 export default cartSlice;
